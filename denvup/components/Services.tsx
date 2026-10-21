@@ -1,6 +1,6 @@
 import { ArrowUpRight } from "lucide-react";
 import Reveal from "./Reveal";
-import SectionWords from "./SectionWords";
+import SectionHeading from "./SectionHeading";
 
 const services = [
   {
@@ -27,8 +27,8 @@ const services = [
 
 export default function Services() {
   return (
-    <section id="services" className="section sw-host">
-      <SectionWords words={["OUR", "SERVICES"]} tone="dark" />
+    <section id="services" className="section sh-host">
+      <SectionHeading label="SERVICES" tone="dark" />
 
       <div className="container">
         <Reveal>

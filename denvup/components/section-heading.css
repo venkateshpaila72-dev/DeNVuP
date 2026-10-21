@@ -1,0 +1,94 @@
+/* Sections that show a scroll heading: the heading sits BEHIND the content (z-index -1 inside an
+   isolated stacking context), so no extra z-index rules are needed on the content itself. */
+.sh-host {
+  position: relative;
+  isolation: isolate;
+}
+
+/* Sticks just under the navbar while you scroll through the section. Its height is cancelled by
+   the negative bottom margin, so it never pushes content around (no layout shift). */
+.sh {
+  --sh-fs: clamp(2.1rem, 4.6vw, 4.1rem);
+  --sh-h: calc(var(--sh-fs) * 1.4);
+  position: sticky;
+  top: 76px;
+  z-index: -1;
+  width: 100%;
+  height: var(--sh-h);
+  /* negative top margin: when the section arrives, the heading rests in its top padding, above the
+     content; negative bottom margin: its height never pushes the content down */
+  margin-top: calc(var(--sh-h) * -1 - 10px);
+  margin-bottom: calc(var(--sh-h) * -1);
+  overflow: hidden; /* the heading may slide past the edges, but never causes a horizontal scrollbar */
+  pointer-events: none;
+  user-select: none;
+}
+
+.sh-dark {
+  --sh-fill: rgba(245, 239, 228, 0.035);
+  --sh-stroke: rgba(245, 239, 228, 0.22);
+}
+.sh-light {
+  --sh-fill: rgba(17, 17, 17, 0.03);
+  --sh-stroke: rgba(17, 17, 17, 0.2);
+}
+
+/* The heading is one element made of single letters, so each letter can move on its own */
+.sh-text {
+  position: absolute;
+  left: max(24px, calc((100vw - 1280px) / 2)); /* aligned with the page content */
+  top: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  font-family: var(--font-display);
+  font-size: var(--sh-fs);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--sh-fill);
+  -webkit-text-stroke: 1px var(--sh-stroke);
+  opacity: 0; /* the scroll animation fades it in */
+  will-change: transform, opacity;
+}
+.sh-dash {
+  flex: none;
+  width: 0.9em;
+  height: 2px;
+  margin-right: 0.55em;
+  background: var(--ember);
+  opacity: 0.75;
+  will-change: transform;
+}
+.sh-letter {
+  display: inline-block;
+  will-change: transform;
+}
+
+@media (max-width: 600px) {
+  .sh {
+    --sh-fs: clamp(1.7rem, 8vw, 2.4rem);
+    top: 72px;
+  }
+  .sh-text {
+    -webkit-text-stroke-width: 0.8px;
+    letter-spacing: 0.1em;
+  }
+}
+
+/* Reduced motion: no movement. A calm static heading at the top of the section instead. */
+@media (prefers-reduced-motion: reduce) {
+  .sh {
+    position: absolute;
+    top: 20px;
+    left: 0;
+    right: 0;
+    margin: 0;
+  }
+  .sh-text {
+    opacity: 1;
+    transform: none;
+  }
+}

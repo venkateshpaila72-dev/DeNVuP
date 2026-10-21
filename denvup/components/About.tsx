@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { gsap, useGSAP } from "../lib/gsap";
 import Reveal from "./Reveal";
-import SectionWords from "./SectionWords";
+import SectionHeading from "./SectionHeading";
 import "./about.css";
 
 // Sample photos from Unsplash. Replace them with your own pictures:
@@ -100,10 +100,10 @@ export default function About() {
   );
 
   return (
-    <section id="about" ref={root} className="about sw-host">
+    <section id="about" ref={root} className="about sh-host">
       <div className="about-bg" />
 
-      <SectionWords words={["WHO", "WE", "ARE"]} tone="light" />
+      <SectionHeading label="ABOUT" tone="light" />
 
       <div className="container about-grid">
         <figure className="about-img about-img-left">

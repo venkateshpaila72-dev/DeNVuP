@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { ArrowUpRight } from "lucide-react";
 import { gsap, useGSAP } from "../lib/gsap";
 import { projects } from "../lib/projects";
+import SectionHeading from "./SectionHeading";
 import "./projects-gallery.css";
 
 // ---- Tuning knobs ----
@@ -126,7 +127,13 @@ export default function Work() {
   );
 
   return (
-    <section id="projects" ref={root} className="pg">
+    <section id="projects" ref={root} className="pg sh-host">
+      <SectionHeading
+        label="PROJECTS"
+        tone="dark"
+        pinLength={() => window.innerHeight * (RISE_SCROLL + (projects.length - 1) * SCROLL_PER_CARD)}
+      />
+
       <div ref={head} className="container pg-head">
         <p className="eyebrow">Projects</p>
         <h2 className="pg-title">Projects we&apos;re proud of.</h2>

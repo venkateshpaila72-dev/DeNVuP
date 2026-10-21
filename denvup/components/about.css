@@ -2,7 +2,7 @@
   position: relative;
   isolation: isolate;
   color: var(--obsidian);
-  padding: clamp(48px, 6vw, 88px) 0 clamp(80px, 12vw, 160px);
+  padding: clamp(96px, 11vw, 160px) 0 clamp(80px, 12vw, 160px);
 }
 
 /* Cream sheet. The scroll animation widens it as you come in from the hero. */

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { gsap, useGSAP } from "../lib/gsap";
 import { team, slugOf } from "../lib/team";
-import SectionWords from "./SectionWords";
+import SectionHeading from "./SectionHeading";
 import "./team.css";
 
 function initials(name: string) {
@@ -52,8 +52,8 @@ export default function Team() {
   );
 
   return (
-    <section id="team" ref={root} className="section section-light sw-host">
-      <SectionWords words={["THE", "TEAM"]} tone="light" />
+    <section id="team" ref={root} className="section section-light sh-host">
+      <SectionHeading label="TEAM" tone="light" />
 
       <div className="container tp">
         <div className="tp-text">
