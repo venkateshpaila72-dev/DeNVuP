@@ -1,0 +1,20 @@
+/* Keeps the 6 navigation links neat on laptop and tablet widths */
+@media (min-width: 769px) {
+  .nav-links {
+    gap: 26px;
+  }
+  .nav-link {
+    font-size: 0.88rem;
+  }
+}
+@media (min-width: 769px) and (max-width: 1060px) {
+  .nav-links {
+    gap: 16px;
+  }
+  .nav-link {
+    font-size: 0.82rem;
+  }
+  .nav-links .btn-sm {
+    padding: 8px 14px;
+  }
+}

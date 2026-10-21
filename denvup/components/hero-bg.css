@@ -1,0 +1,80 @@
+/* Hero only: soft gradient glow behind the fox. Nothing here touches the navbar or other sections. */
+
+section.hero {
+  background: var(--obsidian); /* replaces the old faint glow on .hero */
+  isolation: isolate; /* the glow layer stays inside the hero's own stacking context */
+  overflow: clip; /* nothing spills past the hero's edges */
+}
+
+/* Glow layer: starts below the navbar (72px) and ends where the hero ends */
+section.hero::after {
+  content: "";
+  position: absolute;
+  inset: 72px 0 0 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    /* main glow behind the fox */
+    radial-gradient(
+      ellipse 42% 55% at 74% 50%,
+      rgba(255, 75, 31, 0.3) 0%,
+      rgba(255, 75, 31, 0.14) 40%,
+      transparent 72%
+    ),
+    /* amber glow, lower right */
+    radial-gradient(
+      ellipse 30% 40% at 85% 70%,
+      rgba(255, 176, 32, 0.16) 0%,
+      transparent 70%
+    ),
+    /* orange glow, upper middle */
+    radial-gradient(
+      ellipse 28% 36% at 64% 28%,
+      rgba(244, 123, 32, 0.12) 0%,
+      transparent 70%
+    ),
+    /* very soft glow toward the centre */
+    radial-gradient(
+      ellipse 40% 45% at 46% 62%,
+      rgba(244, 123, 32, 0.06) 0%,
+      transparent 70%
+    ),
+    /* faint dark burgundy at the bottom for depth */
+    radial-gradient(
+      ellipse 55% 45% at 62% 100%,
+      rgba(110, 20, 25, 0.28) 0%,
+      transparent 75%
+    );
+  /* fade in below the navbar and out at the hero's bottom edge, so there are no hard lines */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 82%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 82%, transparent 100%);
+}
+
+/* Hero text always stays above the particle layer */
+.hero-text {
+  position: relative;
+  z-index: 2;
+}
+
+/* Mobile: the fox sits below the text, so move the glow down behind it */
+@media (max-width: 768px) {
+  section.hero::after {
+    background:
+      radial-gradient(
+        ellipse 70% 32% at 50% 72%,
+        rgba(255, 75, 31, 0.28) 0%,
+        rgba(255, 75, 31, 0.12) 45%,
+        transparent 75%
+      ),
+      radial-gradient(
+        ellipse 50% 24% at 72% 84%,
+        rgba(255, 176, 32, 0.14) 0%,
+        transparent 70%
+      ),
+      radial-gradient(
+        ellipse 80% 30% at 50% 100%,
+        rgba(110, 20, 25, 0.26) 0%,
+        transparent 75%
+      );
+  }
+}
