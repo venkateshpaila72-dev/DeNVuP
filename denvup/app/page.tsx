@@ -2,6 +2,7 @@ import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
 import Marquee from "../components/Marquee";
 import About from "../components/About";
+import AboutToServices from "../components/AboutToServices";
 import Services from "../components/Services";
 import Work from "../components/Work";
 import Team from "../components/Team";
@@ -15,8 +16,7 @@ export default function Home() {
       <main>
         <Hero />
         <Marquee />
-        <About />
-        <Services />
+        <AboutToServices about={<About />} services={<Services />} />
         <Work />
         <Team />
         <Contact />

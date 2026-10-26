@@ -1,0 +1,19 @@
+/* "How we work" on the dark background (the global .step styles are made for cream) */
+.hww {
+  padding: clamp(32px, 5vw, 72px) 0 clamp(80px, 10vw, 140px);
+}
+.hww .section-title {
+  margin-bottom: 8px;
+}
+.hww .step {
+  border-top-color: rgba(245, 239, 228, 0.28);
+}
+.hww .step-num {
+  color: var(--ember);
+}
+.hww .step h3 {
+  color: var(--cream);
+}
+.hww .step p {
+  color: var(--sand);
+}

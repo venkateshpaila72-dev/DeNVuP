@@ -1,0 +1,123 @@
+/* =====================================================================
+   About → Services: pinned scene change (desktop only).
+   About stays on screen (pinned) while it slides left and fades, and the background
+   turns from cream to black. The Services content then builds itself, and the page scrolls on.
+   Phones, short screens and reduced motion get a simple stacked version.
+   ===================================================================== */
+
+.at {
+  position: relative;
+}
+
+/* ---------- Default (phones, short screens, reduced motion): simple stack ---------- */
+.at-marker {
+  display: none;
+}
+.at-anchor {
+  display: block;
+  height: 0;
+}
+.at-dark {
+  display: none;
+}
+/* Services slides over the cream with rounded top corners */
+.at-over {
+  position: relative;
+  z-index: 2;
+  margin-top: -36px;
+  border-radius: 36px 36px 0 0;
+  background: var(--obsidian);
+}
+
+/* ---------- Desktop scene change. Keep this media query identical to WIPE_MQ in AboutToServices.tsx ---------- */
+@media (min-width: 900px) and (min-height: 620px) and (prefers-reduced-motion: no-preference) {
+  /* extra scroll distance while everything is pinned (the component sets --at-d) */
+  .at {
+    padding-bottom: var(--at-d, 280vh);
+  }
+  .at-marker {
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+  }
+  .at-anchor {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1px;
+    height: 1px;
+  }
+
+  /* About: pinned with its bottom edge on the bottom of the screen (--at-top is set by the component) */
+  .at-about {
+    position: sticky;
+    top: var(--at-top, 0px);
+    z-index: 1;
+  }
+  .at-about > .about {
+    min-height: 100vh;
+  }
+
+  /* The Services scene: pinned to the top of the screen, laid over About's last screen */
+  .at-over {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    margin-top: -100vh;
+    min-height: 100vh;
+    border-radius: 0;
+    background: none;
+    pointer-events: none; /* About stays clickable until the Services content has appeared */
+  }
+  .at.is-on .at-over {
+    pointer-events: auto;
+  }
+  /* below the first screen the scene is simply dark, so there is never a gap */
+  .at-over::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100vh;
+    bottom: 0;
+    background: var(--obsidian);
+    z-index: 0;
+  }
+
+  /* the black background: one screen tall, fades in over About (cream mixes with black, so it passes through greys) */
+  .at-dark {
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100vh;
+    z-index: 0;
+    pointer-events: none;
+    background: var(--obsidian);
+    opacity: 0; /* animated by the component */
+  }
+
+  /* the Services content sits above the black, starts hidden, and is revealed by the component */
+  .at-services {
+    position: relative;
+    z-index: 1;
+  }
+  .at-over .sv-label,
+  .at-over .sv-title,
+  .at-over .sv-row {
+    opacity: 0;
+  }
+  /* the scatter heading belongs to normal scrolling, so it is not used inside the pinned scene */
+  .at-over .sh {
+    display: none;
+  }
+  /* leave room for the navbar at the top of the pinned screen */
+  .at .at-over section.section.sh-host {
+    padding-top: clamp(112px, 17vh, 176px);
+  }
+}

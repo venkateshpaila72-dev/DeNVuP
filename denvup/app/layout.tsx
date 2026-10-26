@@ -1,21 +1,17 @@
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
-import { Inter, Space_Grotesk } from "next/font/google";
+import type { CSSProperties, ReactNode } from "react";
+import "@fontsource-variable/inter";
+import "@fontsource-variable/space-grotesk";
 import SmoothScroll from "../components/SmoothScroll";
 import GlowCursor from "../components/GlowCursor";
 import "./globals.css";
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
-const space = Space_Grotesk({
-  subsets: ["latin"],
-  variable: "--font-space",
-  display: "swap",
-});
+// Fonts are installed locally (npm packages), so the site works without reaching Google Fonts.
+// The CSS variables below keep the existing var(--font-inter) / var(--font-space) rules working.
+const fontVars = {
+  "--font-inter": "'Inter Variable'",
+  "--font-space": "'Space Grotesk Variable'",
+} as CSSProperties;
 
 export const metadata: Metadata = {
   title: "DENVUP — Creative Digital Agency",
@@ -25,7 +21,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${space.variable}`}>
+    <html lang="en" style={fontVars}>
       <body>
         <SmoothScroll />
         <GlowCursor />
