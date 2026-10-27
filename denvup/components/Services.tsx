@@ -31,30 +31,33 @@ const services = [
 export default function Services() {
   const root = useRef<HTMLElement>(null);
 
-  // The content comes out of the dark one piece at a time as you scroll:
-  // the small label first, then the heading, then the service rows in their order.
-  // Each piece is tied to the scrollbar, so everything plays backwards when you scroll up.
+  // On phones the content builds itself once it scrolls into view: label, heading, then the rows
+  // one after another, alternating left and right. It plays on its own (no scrolling needed to
+  // finish it) and reverses when you scroll back above it.
   useGSAP(
     () => {
       const mm = gsap.matchMedia();
 
-      mm.add("(prefers-reduced-motion: no-preference)", () => {
-        const reveal = (target: Element | string, start: number, end: number) =>
-          gsap.fromTo(
-            target,
-            { opacity: 0, y: 36 },
-            {
-              opacity: 1,
-              y: 0,
-              ease: "power2.out",
-              scrollTrigger: { trigger: target, start: `top ${start}%`, end: `top ${end}%`, scrub: 0.8 },
-            }
-          );
-
-        reveal(".sv-label", 96, 82);
-        reveal(".sv-title", 94, 76);
+      // Only for phones / short screens. On desktop the pinned About -> Services scene
+      // (AboutToServices.tsx) builds this content itself, and two animations must never fight.
+      mm.add("((max-width: 899px) or (max-height: 619px)) and (prefers-reduced-motion: no-preference)", () => {
+        const tl = gsap.timeline({
+          defaults: { ease: "power3.out" },
+          scrollTrigger: {
+            trigger: ".sv-label",
+            start: "top 88%",
+            toggleActions: "play none none reverse",
+          },
+        });
+        tl.fromTo(".sv-label", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5 }, 0).fromTo(
+          ".sv-title",
+          { opacity: 0, y: 26 },
+          { opacity: 1, y: 0, duration: 0.75 },
+          0.4
+        );
         gsap.utils.toArray<HTMLElement>(".sv-row", root.current).forEach((row, i) => {
-          reveal(row, 96 - i, 76 - i); // each row has its own position, so they appear one by one
+          const dir = i % 2 === 0 ? -1 : 1; // left, right, left, right...
+          tl.fromTo(row, { opacity: 0, x: dir * 32 }, { opacity: 1, x: 0, duration: 0.5 }, 1.35 + i * 0.17);
         });
       });
 

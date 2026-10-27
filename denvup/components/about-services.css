@@ -31,9 +31,20 @@
 
 /* ---------- Desktop scene change. Keep this media query identical to WIPE_MQ in AboutToServices.tsx ---------- */
 @media (min-width: 900px) and (min-height: 620px) and (prefers-reduced-motion: no-preference) {
-  /* extra scroll distance while everything is pinned (the component sets --at-d) */
-  .at {
-    padding-bottom: var(--at-d, 280vh);
+  /* Extra scroll distance while everything is pinned (the component sets --at-d).
+     IMPORTANT: a sticky element can only move inside its parent's CONTENT box, so this distance
+     has to be real content (an empty block), not padding. Padding here would leave the sticky
+     layers no room to stay pinned, and the scene would simply scroll away. */
+  .at::after {
+    content: "";
+    display: block;
+    height: var(--at-d, 280vh);
+  }
+  /* About gets its own parent with the same amount of room, so it is released at the same moment */
+  .at-about-wrap::after {
+    content: "";
+    display: block;
+    height: var(--at-d, 280vh);
   }
   .at-marker {
     display: block;
@@ -67,7 +78,8 @@
     position: sticky;
     top: 0;
     z-index: 2;
-    margin-top: -100vh;
+    /* back up over About's last screen (the wrapper above is taller by --at-d) */
+    margin-top: calc(-100vh - var(--at-d, 280vh));
     min-height: 100vh;
     border-radius: 0;
     background: none;

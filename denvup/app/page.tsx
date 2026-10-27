@@ -15,8 +15,8 @@ export default function Home() {
       <Navbar />
       <main>
         <Hero />
-        <Marquee />
         <AboutToServices about={<About />} services={<Services />} />
+        <Marquee />
         <Work />
         <Team />
         <Contact />

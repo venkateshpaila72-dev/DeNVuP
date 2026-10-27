@@ -16,7 +16,7 @@ export default function Hero() {
   const root = useRef<HTMLElement>(null);
   const level = useRef({ v: 0 }); // how visible the ember dust is (read by WipeParticles)
 
-  // Intro animation (unchanged)
+  // Intro animation
   useGSAP(
     () => {
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -25,7 +25,11 @@ export default function Hero() {
       tl.from(".hero-eyebrow", { y: 20, opacity: 0, duration: 0.7 })
         .from(".hero-letter", { yPercent: 110, opacity: 0, duration: 0.9, stagger: 0.06 }, "-=0.4")
         .from(".hero-copy", { y: 24, opacity: 0, duration: 0.8 }, "-=0.5")
-        .from(".hero-cta > *", { y: 20, opacity: 0, duration: 0.6, stagger: 0.12 }, "-=0.5")
+        .from(
+          ".hero-cta > *",
+          { y: 20, opacity: 0, duration: 0.6, stagger: 0.12, clearProps: "transform,opacity" },
+          "-=0.5"
+        )
         .from(".scroll-cue", { opacity: 0, duration: 0.8 }, "-=0.2");
 
       gsap.from(".fox-wrap", { scale: 0.94, opacity: 0, duration: 1.4, ease: "power2.out" });

@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { ArrowRight } from "lucide-react";
 import Reveal from "./Reveal";
+import "./motion.css"; // field label turns ember while you type
 
 type Errors = { name?: string; email?: string; message?: string };
 

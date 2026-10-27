@@ -3,7 +3,6 @@
 import { useRef } from "react";
 import { ArrowRight } from "lucide-react";
 import { gsap, useGSAP } from "../lib/gsap";
-import Reveal from "./Reveal";
 import SectionHeading from "./SectionHeading";
 import "./about.css";
 import "./about-spacing.css"; // keeps the About content and "How we work" close together
@@ -97,6 +96,44 @@ export default function About() {
             }
           );
         });
+
+        // CTA: rises in after the last paragraph
+        gsap.fromTo(
+          ".about-cta",
+          { y: 26, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            ease: "power2.out",
+            scrollTrigger: { trigger: ".about-cta", start: "top 96%", end: "top 78%", scrub: true },
+          }
+        );
+
+        // How we work: label, heading, then the five steps one after another.
+        // Tied to the scrollbar, so it plays backwards when you scroll up. It finishes before
+        // the About -> Services scene starts, so nothing is half-revealed when About moves away.
+        const stepsEl = root.current?.querySelector<HTMLElement>(".about-steps");
+        if (stepsEl) {
+          const steps = gsap.timeline({
+            defaults: { ease: "power2.out" },
+            scrollTrigger: {
+              trigger: stepsEl,
+              start: "top 98%",
+              end: "bottom 94%",
+              scrub: 0.8,
+              invalidateOnRefresh: true,
+            },
+          });
+          steps
+            .fromTo(".about-steps-eyebrow", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.2 }, 0)
+            .fromTo(".about-steps-title", { opacity: 0, y: 28 }, { opacity: 1, y: 0, duration: 0.25 }, 0.12)
+            .fromTo(
+              ".about-steps .step",
+              { opacity: 0, y: 36, borderTopColor: "rgba(17,17,17,0)" },
+              { opacity: 1, y: 0, borderTopColor: "rgba(17,17,17,1)", duration: 0.3, stagger: 0.12 },
+              0.3
+            );
+        }
       });
 
       // Desktop: the two landscape images fly in from the left and right edges of the screen
@@ -214,16 +251,15 @@ export default function About() {
       </div>
 
       <div className="container about-steps">
-        <p className="eyebrow">How we work</p>
+        <p className="eyebrow about-steps-eyebrow">How we work</p>
+        <h2 className="section-title about-steps-title">From idea to launch, step by step.</h2>
         <div className="process-grid">
-          {steps.map((s, i) => (
-            <Reveal key={s.n} delay={i * 0.1}>
-              <div className="step">
-                <span className="step-num">{s.n}</span>
-                <h3>{s.title}</h3>
-                <p>{s.text}</p>
-              </div>
-            </Reveal>
+          {steps.map((s) => (
+            <div key={s.n} className="step">
+              <span className="step-num">{s.n}</span>
+              <h3>{s.title}</h3>
+              <p>{s.text}</p>
+            </div>
           ))}
         </div>
       </div>

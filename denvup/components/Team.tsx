@@ -34,6 +34,7 @@ export default function Team() {
           duration: 0.9,
           stagger: 0.12,
           ease: "power3.out",
+          clearProps: "transform,opacity",
           scrollTrigger: { trigger: ".tp-group", start: "top 85%", once: true },
         });
         gsap.from(".tp-arrow", {
@@ -42,6 +43,7 @@ export default function Team() {
           duration: 0.7,
           delay: 0.5,
           ease: "power3.out",
+          clearProps: "transform,opacity",
           scrollTrigger: { trigger: ".tp-group", start: "top 85%", once: true },
         });
       });
