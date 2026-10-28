@@ -119,17 +119,25 @@
     position: relative;
     z-index: 1;
   }
-  .at-over .sv-label,
-  .at-over .sv-title,
-  .at-over .sv-row {
-    opacity: 0;
-  }
+  /* (The hidden starting state of the Services content is set by the component, not by CSS,
+     so if the script ever fails the content is simply visible instead of missing.) */
   /* the scatter heading belongs to normal scrolling, so it is not used inside the pinned scene */
   .at-over .sh {
     display: none;
   }
   /* leave room for the navbar at the top of the pinned screen */
   .at .at-over section.section.sh-host {
-    padding-top: clamp(112px, 17vh, 176px);
+    padding-top: clamp(104px, 15vh, 160px);
+    padding-bottom: 48px;
+  }
+  /* a little more compact than on a normal page, so the four rows fit on one pinned screen */
+  .at .at-over .section-title {
+    font-size: clamp(2rem, min(4.4vw, 7vh), 3.4rem);
+  }
+  .at .at-over .service-list {
+    margin-top: clamp(28px, 5vh, 56px);
+  }
+  .at .at-over .service {
+    padding: clamp(16px, 3vh, 30px) 0;
   }
 }

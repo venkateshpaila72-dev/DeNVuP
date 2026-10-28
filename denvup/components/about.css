@@ -18,27 +18,39 @@
   color: #c73e14;
 }
 
-.about-grid {
+/* Two big rows: picture left + text right, then text left + picture right */
+.about-rows {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(72px, 9vw, 140px);
+}
+.about-row {
   display: grid;
-  grid-template-columns: 1fr 1.5fr 1fr;
-  gap: clamp(24px, 4vw, 64px);
-  align-items: start;
+  grid-template-columns: repeat(12, 1fr);
+  column-gap: clamp(24px, 3.5vw, 56px);
+  align-items: center;
+}
+.about-row-a .about-img-left {
+  grid-column: 1 / span 7;
+}
+.about-row-a .about-block {
+  grid-column: 8 / span 5;
+}
+.about-row-b .about-block {
+  grid-column: 1 / span 5;
+}
+.about-row-b .about-img-right {
+  grid-column: 6 / span 7;
 }
 
 /* ---------- Images (landscape) ---------- */
 .about-img {
   margin: 0;
 }
-.about-img-left {
-  align-self: end;
-}
-.about-img-right {
-  margin-top: clamp(0px, 3vw, 48px);
-}
 .about-frame {
   position: relative;
   aspect-ratio: 4 / 3;
-  border-radius: 22px;
+  border-radius: 24px;
   overflow: hidden;
   background: linear-gradient(135deg, var(--ember), var(--charcoal));
   box-shadow: 0 24px 50px -24px rgba(17, 17, 17, 0.45);
@@ -107,11 +119,31 @@
   }
 }
 
+/* the left picture is a little taller, the right one a little wider */
+.about-img-left .about-frame {
+  aspect-ratio: 5 / 4;
+}
+.about-img-right .about-frame {
+  aspect-ratio: 4 / 3;
+}
+
 /* ---------- Text ---------- */
+.about-block {
+  min-width: 0;
+}
+/* a short orange rule opens the second text block, as the eyebrow does in the first */
+.about-block-b::before {
+  content: "";
+  display: block;
+  width: 56px;
+  height: 2px;
+  margin-bottom: 28px;
+  background: var(--ember);
+}
 .about-headline {
   margin: 18px 0 28px;
   font-family: var(--font-display);
-  font-size: clamp(2rem, 3.8vw, 3.6rem);
+  font-size: clamp(1.9rem, 3.2vw, 3.1rem);
   line-height: 1.08;
   letter-spacing: -0.02em;
 }
@@ -139,20 +171,24 @@
   margin-top: clamp(72px, 9vw, 120px);
 }
 
-/* ---------- Tablet / mobile: text first, the two landscape images stacked below ---------- */
+/* ---------- Tablet / mobile: each row becomes picture first, then its text ---------- */
 @media (max-width: 899px) {
-  .about-grid {
+  .about-rows {
+    max-width: 680px;
+  }
+  .about-row {
     grid-template-columns: 1fr;
-    max-width: 640px;
+    row-gap: 28px;
   }
-  .about-center {
+  .about-row-a .about-img-left,
+  .about-row-a .about-block,
+  .about-row-b .about-block,
+  .about-row-b .about-img-right {
     grid-column: 1 / -1;
-    order: -1;
   }
-  .about-img-left,
-  .about-img-right {
-    align-self: start;
-    margin-top: 0;
+  /* in the second row the picture also comes first */
+  .about-row-b .about-img-right {
+    order: -1;
   }
 }
 

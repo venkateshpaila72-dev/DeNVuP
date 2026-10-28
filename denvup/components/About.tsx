@@ -108,71 +108,72 @@ export default function About() {
             scrollTrigger: { trigger: ".about-cta", start: "top 96%", end: "top 78%", scrub: true },
           }
         );
+      });
 
-        // How we work: label, heading, then the five steps one after another.
-        // Tied to the scrollbar, so it plays backwards when you scroll up. It finishes before
-        // the About -> Services scene starts, so nothing is half-revealed when About moves away.
+      // "How we work" on phones and short screens (normal scrolling, no pinning): the label, the
+      // heading and then the five steps appear one after another while the section scrolls past.
+      // The range is long, so each step has time to be read. On desktop this is done by the pinned
+      // scene in AboutToServices.tsx instead. The media query below is the exact opposite of WIPE_MQ
+      // there, so the two never run together.
+      mm.add("((max-width: 899px) or (max-height: 619px)) and (prefers-reduced-motion: no-preference)", () => {
         const stepsEl = root.current?.querySelector<HTMLElement>(".about-steps");
-        if (stepsEl) {
-          const steps = gsap.timeline({
+        if (!stepsEl) return;
+        gsap
+          .timeline({
             defaults: { ease: "power2.out" },
             scrollTrigger: {
               trigger: stepsEl,
-              start: "top 98%",
-              end: "bottom 94%",
+              start: "top 90%",
+              end: "bottom 55%",
               scrub: 0.8,
               invalidateOnRefresh: true,
             },
-          });
-          steps
-            .fromTo(".about-steps-eyebrow", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.2 }, 0)
-            .fromTo(".about-steps-title", { opacity: 0, y: 28 }, { opacity: 1, y: 0, duration: 0.25 }, 0.12)
-            .fromTo(
-              ".about-steps .step",
-              { opacity: 0, y: 36, borderTopColor: "rgba(17,17,17,0)" },
-              { opacity: 1, y: 0, borderTopColor: "rgba(17,17,17,1)", duration: 0.3, stagger: 0.12 },
-              0.3
-            );
-        }
+          })
+          .fromTo(".about-steps-eyebrow", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.12 }, 0)
+          .fromTo(".about-steps-title", { opacity: 0, y: 28 }, { opacity: 1, y: 0, duration: 0.16 }, 0.06)
+          .fromTo(
+            ".about-steps .step",
+            { opacity: 0, y: 34, borderTopColor: "rgba(17,17,17,0)" },
+            { opacity: 1, y: 0, borderTopColor: "rgba(17,17,17,1)", duration: 0.22, stagger: 0.14 },
+            0.2
+          );
       });
 
-      // Desktop: the two landscape images fly in from the left and right edges of the screen
+      // Desktop: each big image slides in from its own side of the screen while its row scrolls into view
       mm.add("(min-width: 900px) and (prefers-reduced-motion: no-preference)", () => {
-        const grid = root.current?.querySelector<HTMLElement>(".about-grid");
-        const left = root.current?.querySelector<HTMLElement>(".about-img-left");
-        const right = root.current?.querySelector<HTMLElement>(".about-img-right");
-        if (!grid || !left || !right) return;
+        const rows: [string, string, -1 | 1][] = [
+          [".about-row-a", ".about-img-left", -1],
+          [".about-row-b", ".about-img-right", 1],
+        ];
+        rows.forEach(([rowSel, figSel, dir]) => {
+          const row = root.current?.querySelector<HTMLElement>(rowSel);
+          const fig = root.current?.querySelector<HTMLElement>(figSel);
+          const img = fig?.querySelector<HTMLElement>(".about-frame img");
+          if (!row || !fig || !img) return;
 
-        const entry = () => ({
-          trigger: grid,
-          start: "top 85%",
-          end: "top 25%",
-          scrub: 1,
-          invalidateOnRefresh: true,
-        });
+          const entry = () => ({
+            trigger: row,
+            start: "top 88%",
+            end: "top 38%",
+            scrub: 1,
+            invalidateOnRefresh: true,
+          });
 
-        gsap.fromTo(
-          left,
-          { x: fromEdge(left, -1), opacity: 0, rotationY: 22, transformPerspective: 1000 },
-          { x: 0, opacity: 1, rotationY: 0, ease: "power2.out", scrollTrigger: entry() }
-        );
-        gsap.fromTo(
-          right,
-          { x: fromEdge(right, 1), opacity: 0, rotationY: -22, transformPerspective: 1000 },
-          { x: 0, opacity: 1, rotationY: 0, ease: "power2.out", scrollTrigger: entry() }
-        );
-
-        gsap.utils.toArray<HTMLElement>(".about-frame img", root.current).forEach((img) => {
+          gsap.fromTo(
+            fig,
+            { x: fromEdge(fig, dir), opacity: 0, rotationY: dir < 0 ? 16 : -16, transformPerspective: 1000 },
+            { x: 0, opacity: 1, rotationY: 0, ease: "power2.out", scrollTrigger: entry() }
+          );
           // slight zoom-out while the image arrives
           gsap.fromTo(img, { scale: 1.14 }, { scale: 1, ease: "none", scrollTrigger: entry() });
-          // gentle parallax while the section passes
+          // gentle parallax while the row passes
           gsap.fromTo(
             img,
             { yPercent: -5 },
             {
               yPercent: 5,
               ease: "none",
-              scrollTrigger: { trigger: grid, start: "top bottom", end: "bottom top", scrub: true },
+              scrollTrigger: { trigger: row, start: "top bottom", end: "bottom top", scrub: true },
             }
           );
         });
@@ -205,49 +206,63 @@ export default function About() {
 
       <SectionHeading label="ABOUT" tone="light" />
 
-      <div className="container about-grid">
-        <figure className="about-img about-img-left">
-          <div className="about-frame">
-            <div className="about-media">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={IMAGE_LEFT.src} alt={IMAGE_LEFT.alt} loading="lazy" />
+      <div className="container about-rows">
+        {/* Row 1: big image on the left, the introduction on the right */}
+        <div className="about-row about-row-a">
+          <figure className="about-img about-img-left">
+            <div className="about-frame">
+              <div className="about-media">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={IMAGE_LEFT.src} alt={IMAGE_LEFT.alt} loading="lazy" />
+              </div>
+              <span className="about-tag">{IMAGE_LEFT.tag}</span>
             </div>
-            <span className="about-tag">{IMAGE_LEFT.tag}</span>
-          </div>
-        </figure>
+          </figure>
 
-        <div className="about-center">
-          <p className="eyebrow about-eyebrow">About DENVUP</p>
+          <div className="about-block about-block-a">
+            <p className="eyebrow about-eyebrow">About DENVUP</p>
 
-          <h2 className="about-headline" data-scrub-words>
-            <Words text={HEADLINE} />
-          </h2>
+            <h2 className="about-headline" data-scrub-words>
+              <Words text={HEADLINE} />
+            </h2>
 
-          <div className="about-copy">
-            {PARAGRAPHS.map((text, i) => (
-              <p key={i} data-scrub-words>
-                <Words text={text} />
+            <div className="about-copy">
+              <p data-scrub-words>
+                <Words text={PARAGRAPHS[0]} />
               </p>
-            ))}
+            </div>
           </div>
-
-          <a href="#services" className="about-cta">
-            <span className="about-cta-circle">
-              <ArrowRight size={20} />
-            </span>
-            <span>Our services</span>
-          </a>
         </div>
 
-        <figure className="about-img about-img-right">
-          <div className="about-frame">
-            <div className="about-media">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={IMAGE_RIGHT.src} alt={IMAGE_RIGHT.alt} loading="lazy" />
+        {/* Row 2: the rest of the story on the left, big image on the right */}
+        <div className="about-row about-row-b">
+          <div className="about-block about-block-b">
+            <div className="about-copy">
+              {PARAGRAPHS.slice(1).map((text, i) => (
+                <p key={i} data-scrub-words>
+                  <Words text={text} />
+                </p>
+              ))}
             </div>
-            <span className="about-tag">{IMAGE_RIGHT.tag}</span>
+
+            <a href="#services" className="about-cta">
+              <span className="about-cta-circle">
+                <ArrowRight size={20} />
+              </span>
+              <span>Our services</span>
+            </a>
           </div>
-        </figure>
+
+          <figure className="about-img about-img-right">
+            <div className="about-frame">
+              <div className="about-media">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={IMAGE_RIGHT.src} alt={IMAGE_RIGHT.alt} loading="lazy" />
+              </div>
+              <span className="about-tag">{IMAGE_RIGHT.tag}</span>
+            </div>
+          </figure>
+        </div>
       </div>
 
       <div className="container about-steps">

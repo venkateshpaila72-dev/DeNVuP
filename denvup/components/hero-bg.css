@@ -80,165 +80,189 @@ section.hero::after {
 }
 
 /* ---------- Hero -> About transition (driven by Hero.tsx; affects only the hero) ---------- */
-.hero-wipe,
-.hero-wipe-glow {
+
+/* The cream circle: a plain, solid cream surface. No glow, no rim.
+   It is invisible until Hero.tsx starts it, then it is cut into a growing circle with clip-path. */
+.hero-wipe {
   position: absolute;
   inset: 0;
+  z-index: 4;
+  overflow: hidden;
+  background: var(--cream);
   pointer-events: none;
-  clip-path: ellipse(0px 0px at 50% 100%); /* nothing visible until you scroll */
+  clip-path: circle(0px at 50% 100%);
   will-change: clip-path;
 }
-/* The cream dome: same colour as the About background */
-.hero-wipe {
-  z-index: 4;
-  background: var(--cream);
-  overflow: hidden;
-}
-/* Thin ember rim that travels just ahead of the dome edge */
-.hero-wipe-glow {
-  z-index: 3;
-  background: linear-gradient(90deg, var(--ember), #ffb020 50%, var(--ember));
-  opacity: 0.6;
+/* fine paper grain on the cream, so it does not feel flat */
+.hero-wipe::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.09;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* Ember dust (three.js canvas). It always covers one screen height, because the hero is pinned. */
-.wipe-particles {
+/* Fox watermark: the real DENVUP logo, large and very faint, behind the text */
+.mf-fox-wrap {
   position: absolute;
-  left: 0;
   top: 0;
-  width: 100%;
-  height: 100svh;
+  right: -5vw;
+  bottom: 0;
+  z-index: 1;
+  width: min(82vh, 66vw);
+  height: min(82vh, 66vw);
+  max-height: 100svh;
+  margin: auto 0;
   pointer-events: none;
 }
-.wipe-canvas {
+.mf-fox {
   display: block;
   width: 100%;
   height: 100%;
+  object-fit: contain;
+  opacity: 0.13;
 }
 
-/* Frame with the design details. It always covers one screen height (the hero is pinned). */
-.wipe-frame {
+/* The manifesto: one screen tall (the hero is pinned), the three statements share the same spot */
+.mf {
   position: absolute;
   left: 0;
   top: 0;
+  z-index: 2;
   width: 100%;
   height: 100svh;
-  pointer-events: none;
-  --wipe-ink: rgba(17, 17, 17, 0.38);
 }
-/* Vertical line through the centre: faint, and fading out at both ends */
-.wipe-line {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  width: 1px;
-  height: 100%;
-  background: linear-gradient(to bottom, transparent, rgba(17, 17, 17, 0.1) 25%, rgba(17, 17, 17, 0.1) 75%, transparent);
-  transform-origin: top;
-  transform: scaleY(0);
-}
-/* Matching horizontal line */
-.wipe-hline {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  width: 100%;
-  height: 1px;
-  background: linear-gradient(to right, transparent, rgba(17, 17, 17, 0.08) 25%, rgba(17, 17, 17, 0.08) 75%, transparent);
-}
-/* Corner brackets (the top ones sit below the navbar) */
-.wipe-corner {
-  position: absolute;
-  width: 26px;
-  height: 26px;
-  border: 0 solid var(--wipe-ink);
-}
-.wipe-corner-tl { left: 28px; top: 92px; border-left-width: 1px; border-top-width: 1px; }
-.wipe-corner-tr { right: 28px; top: 92px; border-right-width: 1px; border-top-width: 1px; }
-.wipe-corner-bl { left: 28px; bottom: 28px; border-left-width: 1px; border-bottom-width: 1px; }
-.wipe-corner-br { right: 28px; bottom: 28px; border-right-width: 1px; border-bottom-width: 1px; }
-/* Small plus marks */
-.wipe-plus {
-  position: absolute;
-  font-family: var(--font-display);
-  font-size: 1.1rem;
-  line-height: 1;
-  color: var(--ember);
-}
-.wipe-plus-1 { left: 24%; top: 28%; }
-.wipe-plus-2 { left: 76%; top: 28%; }
-.wipe-plus-3 { left: 24%; top: 72%; }
-.wipe-plus-4 { left: 76%; top: 72%; }
-/* Small captions in the corners */
-.wipe-label {
-  position: absolute;
-  font-size: 0.68rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--wipe-ink);
-  white-space: nowrap;
-}
-.wipe-label-tl { left: 64px; top: 96px; }
-.wipe-label-tr { right: 64px; top: 96px; }
-.wipe-label-bl { left: 64px; bottom: 32px; }
-.wipe-label-br { right: 64px; bottom: 32px; }
-.wipe-deco {
-  opacity: 0; /* GSAP fades these in */
-}
-
-/* Logo + rings in the centre of the screen */
-.wipe-core {
-  position: absolute;
-  left: 50%;
-  top: calc(50svh - 130px);
-  width: 260px;
-  height: 260px;
-  margin-left: -130px;
-}
-.wipe-core svg {
+.mf-item {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 96px clamp(24px, 7vw, 120px) 56px;
 }
-.wipe-orbit-dash circle {
-  stroke: var(--ember);
-  stroke-width: 1;
-  stroke-opacity: 0.35;
-  stroke-dasharray: 2 9;
-}
-.wipe-orbit text {
-  font-family: var(--font-display);
-  font-size: 10.5px;
+.mf-label {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: clamp(16px, 2.6vh, 28px);
+  font-size: 0.8rem;
   font-weight: 600;
-  letter-spacing: 0.2em;
-  fill: rgba(17, 17, 17, 0.55);
+  letter-spacing: 0.28em;
+  color: #c73e14; /* the darker orange, readable on cream */
 }
-.wipe-ring {
-  stroke: var(--ember);
-  stroke-width: 1.5;
-  stroke-opacity: 0.55;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  transform-box: fill-box;
-  transform-origin: center;
-  transform: rotate(-90deg); /* the ring starts drawing from the top */
+.mf-label::before {
+  content: "";
+  width: 40px;
+  height: 1px;
+  background: currentColor;
 }
-.wipe-logo {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 92px;
-  height: 92px;
-  margin: -46px 0 0 -46px;
-  object-fit: contain;
-  opacity: 0;
+.mf-text {
+  max-width: min(100%, 15em);
+  font-family: var(--font-display);
+  font-size: clamp(2.1rem, 6.4vw, 6.2rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.025em;
+  color: var(--obsidian);
+}
+/* every word sits in a small mask, so it rises out of an invisible edge */
+.mf-word {
+  display: inline-block;
+  vertical-align: top;
+  overflow: hidden;
+  padding: 0.06em 0 0.1em;
+  margin: -0.06em 0 -0.1em;
+}
+.mf-word-in {
+  display: inline-block;
+}
+.mf-hl {
+  color: var(--ember);
 }
 
-/* Phones: hide the small captions and plus marks, keep the logo and rings */
+/* ---------- Scroll arrow: bottom centre of the hero ---------- */
+.scroll-arrow {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 32px;
+  z-index: 5;
+  width: 46px;
+  height: 46px;
+  margin-inline: auto;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(217, 205, 187, 0.45);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--cream);
+  transition: border-color 0.3s ease, color 0.3s ease;
+}
+.scroll-arrow:hover {
+  border-color: var(--ember);
+  color: var(--ember);
+}
+.scroll-arrow-icon {
+  display: grid;
+  animation: arrow-nudge 2s ease-in-out infinite;
+}
+@keyframes arrow-nudge {
+  0%,
+  100% {
+    transform: translateY(-2px);
+  }
+  50% {
+    transform: translateY(3px);
+  }
+}
+
+/* Phones: a little less sideways room, and the watermark sits more to the centre */
 @media (max-width: 768px) {
-  .wipe-label,
-  .wipe-plus {
+  .mf-item {
+    padding: 88px 24px 48px;
+  }
+  .mf-text {
+    font-size: clamp(2.2rem, 10vw, 3.6rem);
+  }
+  .mf-fox-wrap {
+    right: -22vw;
+    width: min(70vh, 120vw);
+    height: min(70vh, 120vw);
+  }
+}
+
+/* Reduced motion: no pinning and no circle. The hero is followed by the manifesto as a plain,
+   readable cream block, and the page continues into About. Nothing is hidden. */
+@media (prefers-reduced-motion: reduce) {
+  section.hero {
+    display: block;
+    padding-bottom: 0;
+  }
+  .scroll-arrow {
     display: none;
+  }
+  .hero-wipe {
+    position: relative;
+    inset: auto;
+    margin-top: 72px;
+    clip-path: none;
+    pointer-events: auto;
+  }
+  .mf {
+    position: relative;
+    height: auto;
+    padding: 72px 0;
+  }
+  .mf-item {
+    position: relative;
+    inset: auto;
+    padding-top: 40px;
+    padding-bottom: 40px;
+  }
+  .mf-fox-wrap {
+    inset: 0 -5vw 0 auto;
   }
 }

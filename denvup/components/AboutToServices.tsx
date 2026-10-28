@@ -4,14 +4,37 @@ import { useRef, type ReactNode } from "react";
 import { gsap, ScrollTrigger, useGSAP } from "../lib/gsap";
 import "./about-services.css";
 
-// ---- Tuning knobs ----
-const SCROLL_LENGTH = 2.8; // how long you scroll for the whole scene change, in screen heights. Bigger = slower
-const EXIT_FROM = 0.1; // About starts to move away (0 to 1 over SCROLL_LENGTH)
-const EXIT_TO = 0.55; // ...and is completely gone by here
-const DARK_FROM = 0.15; // the background starts to turn from cream to black
-const DARK_TO = 0.65; // ...and is completely black by here
-const CONTENT_AT = 0.7; // from here on the Services content builds up by itself (no more scrolling needed)
-const ROW_SLIDE = 56; // how far the service rows travel in from the side (px)
+/* =====================================================================
+   The pinned scene: "How we work" -> About leaves -> background turns black -> Services builds up.
+   The whole thing is ONE timeline tied to the scrollbar (scrub). Nothing plays by itself:
+   scroll slowly and it moves slowly, stop and it stops, scroll up and it plays backwards.
+
+   All the numbers below are in SCREEN HEIGHTS of scrolling while the scene is pinned.
+   For example "1.5" means: it happens after you scrolled one and a half screens into the scene.
+   ===================================================================== */
+
+// 1) "How we work" builds up, then stays fully visible so it can be read
+const PROCESS_AT = 0.05; // the small label starts
+const STEPS_AT = 0.5; // the first of the five steps starts
+const STEP_GAP = 0.3; // scrolling between one step and the next
+const STEP_DUR = 0.45; // how long one step takes to fade in
+const READ_FOR = 0.65; // everything stays still and readable for this long once the last step is in
+
+// 2) About moves away and the background turns black
+const EXIT_DUR = 0.8; // how long About takes to leave
+const DARK_LAG = 0.2; // the black starts a little after About starts to leave
+const DARK_DUR = 0.9; // how long the cream takes to become fully black
+
+// 3) Services builds up on the black, one piece after another, always by scrolling
+const SV_PAUSE = 0.05; // a short beat of plain black before the label
+const SV_LABEL_DUR = 0.3;
+const SV_TITLE_LAG = 0.15; // the heading starts a little after the label
+const SV_TITLE_DUR = 0.4;
+const SV_ROWS_LAG = 0.35; // the first row starts after the heading
+const SV_ROW_GAP = 0.35; // scrolling between one row and the next
+const SV_ROW_DUR = 0.45;
+const SV_ROW_SLIDE = 64; // how far a row travels in from the side (px)
+const END_HOLD = 0.35; // everything stays complete for this long before the page is released
 
 // Must be identical to the media query used for the pinned layout in about-services.css
 const WIPE_MQ = "(min-width: 900px) and (min-height: 620px) and (prefers-reduced-motion: no-preference)";
@@ -34,6 +57,19 @@ export default function AboutToServices({ about, services }: Props) {
         if (!aboutEl || !marker || !anchor) return;
         const rows = gsap.utils.toArray<HTMLElement>(".sv-row", wrap);
 
+        // ---- when does each phase happen (screen heights into the scene) ----
+        const stepsEnd = STEPS_AT + (gsap.utils.toArray(".about-steps .step", wrap).length - 1) * STEP_GAP + STEP_DUR;
+        const EXIT_AT = stepsEnd + READ_FOR;
+        const DARK_AT = EXIT_AT + DARK_LAG;
+        const SV_LABEL_AT = DARK_AT + DARK_DUR + SV_PAUSE;
+        const SV_TITLE_AT = SV_LABEL_AT + SV_TITLE_LAG;
+        const SV_ROWS_AT = SV_TITLE_AT + SV_ROWS_LAG;
+        const rowsEnd = SV_ROWS_AT + Math.max(0, rows.length - 1) * SV_ROW_GAP + SV_ROW_DUR;
+        // total scroll length of the scene: it follows the real number of services
+        const LENGTH = rowsEnd + END_HOLD;
+        // where the "Services" link lands: black is complete and the heading is in
+        const LINK_AT = SV_TITLE_AT + SV_TITLE_DUR;
+
         // The Services section and the scroll anchor must not both be id="services".
         // On desktop the section sits inside a sticky layer, so the anchor takes the id and the
         // "Services" links land in the right place. On phones the section keeps the id itself.
@@ -47,74 +83,109 @@ export default function AboutToServices({ about, services }: Props) {
         const measure = () => {
           const vh = window.innerHeight;
           const H = aboutEl.offsetHeight;
-          wrap.style.setProperty("--at-d", `${SCROLL_LENGTH * 100}vh`);
+          wrap.style.setProperty("--at-d", `${LENGTH * 100}vh`);
           aboutEl.style.setProperty("--at-top", `${Math.min(0, vh - H)}px`);
           marker.style.top = `${Math.max(0, H - vh)}px`;
-          anchor.style.top = `${Math.max(0, H - vh) + 0.85 * SCROLL_LENGTH * vh}px`;
+          anchor.style.top = `${Math.max(0, H - vh) + LINK_AT * vh}px`;
         };
         measure();
 
-        // Phase B: the Services content builds itself, one piece after another (not tied to scrolling)
-        // label (0.5s) -> heading (0.75s) -> short pause -> rows, each 0.5s, 0.17s apart
-        const content = gsap.timeline({ paused: true, defaults: { ease: "power3.out" } });
-        content
-          .fromTo(".sv-label", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5 }, 0)
-          .fromTo(".sv-title", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.75 }, 0.4);
-        rows.forEach((row, i) => {
-          // first row from the left, second from the right, third from the left...
-          const dir = i % 2 === 0 ? -1 : 1;
-          content.fromTo(row, { opacity: 0, x: dir * ROW_SLIDE }, { opacity: 1, x: 0, duration: 0.5 }, 1.35 + i * 0.17);
-        });
+        // The Services layer only takes mouse clicks once its content has started to appear
+        const sync = (time: number) => wrap.classList.toggle("is-on", time >= SV_LABEL_AT);
 
-        let contentOn = false;
-        const sync = (p: number, instant = false) => {
-          const should = p >= CONTENT_AT;
-          if (should === contentOn && !instant) return;
-          contentOn = should;
-          wrap.classList.toggle("is-on", should);
-          if (instant) content.progress(should ? 1 : 0);
-          else if (should) content.timeScale(1).play();
-          else content.timeScale(2).reverse();
-        };
-
-        // Phase A: scroll-driven. About slides left and fades while the background turns black.
         const tl = gsap.timeline({
           defaults: { ease: "none" },
           scrollTrigger: {
             trigger: marker,
             start: "top top", // the moment the bottom of About reaches the bottom of the screen
-            end: () => `+=${SCROLL_LENGTH * window.innerHeight}`,
-            scrub: 1.2, // a little glide, so it feels smooth and cinematic
+            end: () => `+=${LENGTH * window.innerHeight}`,
+            scrub: 0.8, // a short glide so it feels smooth, but it always follows the scrollbar
             invalidateOnRefresh: true,
             onRefreshInit: measure,
-            onRefresh: (self) => sync(self.progress, true),
+            onRefresh: (self) => sync(self.progress * LENGTH),
           },
         });
-        // About leaves in a coordinated way: images go to their own screen edges, the text block
+
+        // 1) How we work: label, heading, then the steps one after another. They all STAY visible.
+        tl.fromTo(
+          ".about-steps-eyebrow",
+          { opacity: 0, y: 24 },
+          { opacity: 1, y: 0, duration: 0.3, ease: "power2.out" },
+          PROCESS_AT
+        )
+          .fromTo(
+            ".about-steps-title",
+            { opacity: 0, y: 28 },
+            { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" },
+            PROCESS_AT + 0.1
+          )
+          .fromTo(
+            ".about-steps .step",
+            { opacity: 0, y: 34, borderTopColor: "rgba(17,17,17,0)" },
+            {
+              opacity: 1,
+              y: 0,
+              borderTopColor: "rgba(17,17,17,1)",
+              duration: STEP_DUR,
+              ease: "power2.out",
+              stagger: STEP_GAP,
+            },
+            STEPS_AT
+          );
+
+        // 2) About leaves in a coordinated way: images go to their own screen edges, the text block
         // drifts up, the process steps fade up and out. (The image tweens state their start values
         // explicitly and do not render early, because About.tsx animates the same images on entry.)
-        const exit = EXIT_TO - EXIT_FROM;
         tl.fromTo(
           ".at-about .about-img-left",
           { x: 0, opacity: 1 },
-          { x: "-55vw", opacity: 0, ease: "power2.in", duration: exit, immediateRender: false },
-          EXIT_FROM
+          { x: "-55vw", opacity: 0, ease: "power2.in", duration: EXIT_DUR, immediateRender: false },
+          EXIT_AT
         )
           .fromTo(
             ".at-about .about-img-right",
             { x: 0, opacity: 1 },
-            { x: "55vw", opacity: 0, ease: "power2.in", duration: exit, immediateRender: false },
-            EXIT_FROM
+            { x: "55vw", opacity: 0, ease: "power2.in", duration: EXIT_DUR, immediateRender: false },
+            EXIT_AT
           )
-          .to(".at-about .about-center", { y: -70, opacity: 0, ease: "power1.inOut", duration: exit * 0.85 }, EXIT_FROM + 0.02)
-          .to(".at-about .about-steps", { y: -50, opacity: 0, ease: "power1.inOut", duration: exit * 0.8 }, EXIT_FROM);
-        tl.to(".at-about .sh", { opacity: 0, duration: 0.2 }, EXIT_FROM);
-        tl.fromTo(".at-dark", { opacity: 0 }, { opacity: 1, duration: DARK_TO - DARK_FROM }, DARK_FROM);
-        // pad the timeline to exactly 1
-        tl.to({}, { duration: 1 - DARK_TO }, DARK_TO);
-        // Phase B starts from the smoothed progress, so the content never starts before the black has landed
-        tl.eventCallback("onUpdate", () => sync(tl.progress()));
-        sync(0, true);
+          .to(
+            ".at-about .about-block",
+            { y: -70, opacity: 0, ease: "power1.inOut", duration: EXIT_DUR * 0.85 },
+            EXIT_AT + 0.05
+          )
+          .to(".at-about .about-steps", { y: -50, opacity: 0, ease: "power1.inOut", duration: EXIT_DUR * 0.8 }, EXIT_AT)
+          .to(".at-about .sh", { opacity: 0, duration: 0.3 }, EXIT_AT);
+
+        // ...while the cream turns to black (it passes through greys on the way)
+        tl.fromTo(".at-dark", { opacity: 0 }, { opacity: 1, duration: DARK_DUR }, DARK_AT);
+
+        // 3) Services, only after the black is complete. Each piece is tied to the scrollbar.
+        tl.fromTo(
+          ".sv-label",
+          { opacity: 0, y: 20 },
+          { opacity: 1, y: 0, duration: SV_LABEL_DUR, ease: "power2.out" },
+          SV_LABEL_AT
+        ).fromTo(
+          ".sv-title",
+          { opacity: 0, y: 26 },
+          { opacity: 1, y: 0, duration: SV_TITLE_DUR, ease: "power2.out" },
+          SV_TITLE_AT
+        );
+        rows.forEach((row, i) => {
+          // first row from the left, second from the right, third from the left...
+          const dir = i % 2 === 0 ? -1 : 1;
+          tl.fromTo(
+            row,
+            { opacity: 0, x: dir * SV_ROW_SLIDE },
+            { opacity: 1, x: 0, duration: SV_ROW_DUR, ease: "power2.out" },
+            SV_ROWS_AT + i * SV_ROW_GAP
+          );
+        });
+
+        // an empty tween stretches the timeline to exactly LENGTH, so the last bit is a calm hold
+        tl.to({}, { duration: LENGTH }, 0);
+        tl.eventCallback("onUpdate", () => sync(tl.time()));
+        sync(0);
 
         // About's height can change (fonts, images): measure again and refresh the scroll positions
         let timer = 0;
@@ -135,7 +206,6 @@ export default function AboutToServices({ about, services }: Props) {
         return () => {
           window.clearTimeout(timer);
           ro.disconnect();
-          content.kill();
           anchor.removeAttribute("id");
           if (servicesSection) servicesSection.id = "services";
           wrap.classList.remove("is-on");
